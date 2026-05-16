@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Registro Horas">
+<meta name="theme-color" content="#1a6b3a">
+<title>Registro de Horas</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f4f0;color:#111;min-height:100vh}
+:root{
+  --p:#1a6b3a;--pl:#e8f5ec;--pm:#2d9e5f;
+  --acc:#f0a500;--acc-l:#fff9e6;
+  --dan:#c0392b;--dan-l:#fdecea;
+  --ok:#27ae60;--ok-l:#eafbf0;
+  --bd:rgba(0,0,0,0.1);--bg:#fff;--mu:#6b7280;
+  --text:#111;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#1e1e1e;--text:#f0f0f0;--mu:#9ca3af;--bd:rgba(255,255,255,0.12);--pl:#0d2b1a;--ok-l:#0d2b1a;--dan-l:#2b0d0d;--acc-l:#2b2000;}
+  body{background:#111;color:#f0f0f0}
+  .card,.day-item,.modal{background:#1e1e1e}
+  .fr input,.fr select,.fil-row select{background:#2a2a2a;color:#f0f0f0;border-color:rgba(255,255,255,0.12)}
+  .nav,.header-bar{background:#1a1a1a}
+  .prev{background:#0d2b1a}
+}
+.app{max-width:440px;margin:0 auto;padding-bottom:20px}
+.header-bar{background:var(--p);color:#fff;padding:14px 16px;position:sticky;top:0;z-index:100}
+.header-bar h1{font-size:18px;font-weight:700;letter-spacing:-.3px}
+.header-bar p{font-size:11px;opacity:.75;margin-top:2px}
+.nav{display:flex;background:var(--bg);border-bottom:.5px solid var(--bd);position:sticky;top:58px;z-index:99}
+.nav button{flex:1;padding:9px 2px;font-size:11px;font-weight:600;border:none;background:none;color:var(--mu);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.nav button.active{color:var(--p);border-bottom-color:var(--p)}
+.sec{display:none;padding:12px}
+.sec.active{display:block}
+.card{background:var(--bg);border-radius:12px;border:.5px solid var(--bd);padding:14px;margin-bottom:10px}
+.card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--mu);margin-bottom:12px}
+.fr{margin-bottom:11px}
+.fr label{display:block;font-size:12px;color:var(--mu);margin-bottom:4px;font-weight:500}
+.fr input,.fr select{width:100%;padding:10px 12px;border:.5px solid var(--bd);border-radius:8px;font-size:15px;background:var(--bg);color:var(--text);outline:none;-webkit-appearance:none}
+.fr input:focus{border-color:var(--p);box-shadow:0 0 0 2px rgba(26,107,58,.15)}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{display:block;width:100%;padding:12px;border-radius:10px;border:none;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;text-align:center}
+.btn-p{background:var(--p);color:#fff}.btn-p:hover{background:#145a30}.btn-p:active{transform:scale(.98)}
+.btn-sm{padding:8px 14px;font-size:12px;border-radius:8px;width:auto}
+.btn-g{background:none;border:.5px solid var(--bd);color:var(--mu)}
+.btn-ok{background:var(--ok-l);color:#1a6b3a;border:none}
+.btn-dan{background:var(--dan-l);color:var(--dan);border:none}
+.btn-drive{background:#1a73e8;color:#fff;border:none;display:flex;align-items:center;gap:8px;justify-content:center}
+.btn-drive:hover{background:#1558c0}
+.prev{background:var(--pl);border-radius:10px;padding:14px;margin-bottom:12px}
+.prev-big{font-size:30px;font-weight:800;color:var(--p)}
+.prev-sub{font-size:12px;color:var(--mu);margin-top:3px}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.stat{background:var(--bg);border-radius:10px;border:.5px solid var(--bd);padding:12px;text-align:center}
+.stat .val{font-size:19px;font-weight:700;color:var(--p)}
+.stat .lbl{font-size:11px;color:var(--mu);margin-top:2px}
+.day-item{background:var(--bg);border-radius:10px;border:.5px solid var(--bd);padding:12px;margin-bottom:8px}
+.day-item.paid{border-color:#4caf50;background:var(--pl)}
+.dh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.ddate{font-size:14px;font-weight:600}
+.dtotal{font-size:16px;font-weight:700;color:var(--p)}
+.ddetail{font-size:12px;color:var(--mu)}
+.dact{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.b-ok{background:var(--ok-l);color:#1a6b3a}
+.b-pend{background:var(--acc-l);color:#856404}
+.empty{text-align:center;padding:24px 20px;color:var(--mu);font-size:13px}
+.fil-row{display:flex;gap:8px;margin-bottom:12px}
+.fil-row select{flex:1;padding:9px 10px;border:.5px solid var(--bd);border-radius:8px;font-size:13px;background:var(--bg);color:var(--text);outline:none;-webkit-appearance:none}
+.big-num{text-align:center;padding:14px}
+.big-num .monto{font-size:34px;font-weight:800;color:var(--p)}
+.big-num .label{font-size:13px;color:var(--mu)}
+.drive-box{background:#e8f0fe;border-radius:10px;padding:14px;margin-bottom:10px;border:.5px solid #a8c7fa}
+.drive-box .tit{font-size:12px;font-weight:700;color:#174ea6;margin-bottom:4px}
+.drive-box .sub{font-size:11px;color:#3c4043;margin-bottom:10px;line-height:1.5}
+.modal-wrap{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:center;justify-content:center}
+.modal-wrap.open{display:flex}
+.modal{background:var(--bg);border-radius:16px;padding:20px;width:92%;max-width:380px;max-height:90vh;overflow-y:auto}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:14px}
+.modal-act{display:flex;gap:8px;margin-top:14px}
+.modal-act button{flex:1}
+.divider{border:none;border-top:.5px solid var(--bd);margin:14px 0}
+.sync-ok{background:var(--ok-l);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--ok);margin-bottom:8px;display:none}
+.sync-err{background:var(--dan-l);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--dan);margin-bottom:8px;display:none}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a6b3a;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header-bar">
+    <h1>⏱ Registro de Horas</h1>
+    <p id="hdr-sub">Cargando...</p>
+  </div>
+  <div class="nav">
+    <button class="active" onclick="showTab('reg')">＋ Registrar</button>
+    <button onclick="showTab('lst')">📋 Listado</button>
+    <button onclick="showTab('res')">📊 Resumen</button>
+    <button onclick="showTab('cob')">💰 Cobros</button>
+  </div>
+
+  <!-- REGISTRAR -->
+  <div id="tab-reg" class="sec active">
+    <div class="card">
+      <div class="card-title">Nuevo día de trabajo</div>
+      <div class="fr"><label>Fecha</label><input type="date" id="inp-fecha"></div>
+      <div class="r2">
+        <div class="fr">
+          <label>Horas trabajadas</label>
+          <input type="number" id="inp-horas" placeholder="8" step="0.25" min="0" max="24" oninput="calcPrev()">
+        </div>
+        <div class="fr">
+          <label>Horas extraordinarias</label>
+          <input type="number" id="inp-extra" placeholder="0" step="0.25" min="0" max="24" oninput="calcPrev()">
+        </div>
+      </div>
+      <div class="r2">
+        <div class="fr">
+          <label>€/hora normal</label>
+          <input type="number" id="inp-precio" placeholder="10.00" step="0.01" min="0" oninput="calcPrev()">
+        </div>
+        <div class="fr">
+          <label>€/hora extra</label>
+          <input type="number" id="inp-precio-extra" placeholder="0.00" step="0.01" min="0" oninput="calcPrev()">
+        </div>
+      </div>
+      <div class="fr"><label>Notas</label><input type="text" id="inp-notas" placeholder="Opcional"></div>
+
+      <div class="prev">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div class="prev-big" id="prev-total">0,00 €</div>
+            <div class="prev-sub" id="prev-det">Introduce las horas</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:20px;font-weight:700;color:var(--p)" id="prev-htotal">0h</div>
+            <div style="font-size:11px;color:var(--mu)" id="prev-hdet"></div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-p" onclick="guardarDia()">Guardar día</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Precios por defecto</div>
+      <div class="r2">
+        <div class="fr"><label>€/hora normal</label><input type="number" id="cfg-precio" placeholder="10.00" step="0.01" min="0"></div>
+        <div class="fr"><label>€/hora extra</label><input type="number" id="cfg-extra" placeholder="15.00" step="0.01" min="0"></div>
+      </div>
+      <button class="btn btn-g btn-sm" onclick="guardarConfig()">Guardar configuración</button>
+    </div>
+  </div>
+
+  <!-- LISTADO -->
+  <div id="tab-lst" class="sec">
+    <div class="fil-row">
+      <select id="fil-mes" onchange="renderListado()"><option value="">Todos los meses</option></select>
+      <select id="fil-est" onchange="renderListado()">
+        <option value="">Todos</option>
+        <option value="cobrado">Cobrados</option>
+        <option value="pendiente">Pendientes</option>
+      </select>
+    </div>
+    <div id="lst-cont"></div>
+  </div>
+
+  <!-- RESUMEN -->
+  <div id="tab-res" class="sec">
+    <div class="fil-row">
+      <select id="res-periodo" onchange="renderResumen()">
+        <option value="semana">Esta semana</option>
+        <option value="mes" selected>Este mes</option>
+        <option value="año">Este año</option>
+        <option value="todo">Todo</option>
+      </select>
+    </div>
+    <div id="res-cont"></div>
+  </div>
+
+  <!-- COBROS -->
+  <div id="tab-cob" class="sec">
+    <div class="card">
+      <div class="card-title">Registrar cobro</div>
+      <div class="fr">
+        <label>Tipo</label>
+        <select id="cob-tipo" onchange="tipoCobro()">
+          <option value="hasta">Cobrado hasta una fecha</option>
+          <option value="dia">Día específico cobrado</option>
+          <option value="rango">Rango de fechas</option>
+        </select>
+      </div>
+      <div class="r2">
+        <div class="fr"><label id="cob-lbl">Cobrado hasta</label><input type="date" id="cob-f1"></div>
+        <div class="fr" id="cob-f2-wrap" style="display:none"><label>Hasta</label><input type="date" id="cob-f2"></div>
+      </div>
+      <div class="fr"><label>Importe cobrado (€)</label><input type="number" id="cob-imp" placeholder="0.00" step="0.01" min="0"></div>
+      <div class="fr"><label>Notas</label><input type="text" id="cob-notas" placeholder="Ej: transferencia, efectivo..."></div>
+      <button class="btn btn-p" onclick="registrarCobro()">Registrar cobro</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Balance total</div>
+      <div id="bal-cont"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Historial de cobros</div>
+      <div id="cob-hist"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL BACKUP / DRIVE -->
+<div class="modal-wrap" id="modal-backup">
+  <div class="modal">
+    <h3>💾 Copia de seguridad</h3>
+    <div class="drive-box">
+      <div class="tit">☁️ Google Drive (automático)</div>
+      <div class="sub">Sube el backup a tu Google Drive. Necesitas configurar el Client ID de Google una sola vez (ver instrucciones en la app).</div>
+      <div id="drive-status" class="sync-ok">✅ Subido correctamente a Google Drive</div>
+      <div id="drive-err" class="sync-err">❌ Error al conectar. Revisa el Client ID.</div>
+      <div class="fr" style="margin-bottom:8px">
+        <label>Google Client ID (pega el tuyo aquí)</label>
+        <input type="text" id="inp-client-id" placeholder="123456-xxx.apps.googleusercontent.com" oninput="guardarClientId()">
+      </div>
+      <button class="btn btn-drive" onclick="subirDrive()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><path d="M7.71 3.5L1.15 15l3.43 5.5h14.84L22.85 15 16.29 3.5z"/><path d="M12 3.5l6.56 11.5H5.44z"/><path d="M1.15 15h21.7"/></svg>
+        Subir a Google Drive
+      </button>
+    </div>
+    <hr class="divider">
+    <div class="card-title" style="margin-bottom:8px">Exportar / importar manual</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-g btn-sm" onclick="exportCSV()">📄 CSV (Excel)</button>
+      <button class="btn btn-g btn-sm" onclick="exportJSON()">💾 Backup JSON</button>
+      <button class="btn btn-g btn-sm" onclick="importJSON()">📂 Restaurar JSON</button>
+    </div>
+    <div class="modal-act">
+      <button class="btn btn-g btn-sm" onclick="cerrarModal('modal-backup')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR -->
+<div class="modal-wrap" id="modal-edit">
+  <div class="modal">
+    <h3>Editar día</h3>
+    <div class="fr"><label>Horas normales</label><input type="number" id="ed-h" step="0.25" min="0"></div>
+    <div class="fr"><label>Horas extra</label><input type="number" id="ed-he" step="0.25" min="0"></div>
+    <div class="fr"><label>€/hora normal</label><input type="number" id="ed-p" step="0.01" min="0"></div>
+    <div class="fr"><label>€/hora extra</label><input type="number" id="ed-pe" step="0.01" min="0"></div>
+    <div class="fr"><label>Notas</label><input type="text" id="ed-n"></div>
+    <div class="modal-act">
+      <button class="btn btn-g btn-sm" onclick="cerrarModal('modal-edit')">Cancelar</button>
+      <button class="btn btn-p btn-sm" onclick="guardarEdit()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let D = { dias: [], cobros: [], cfg: { precio: 10, extra: 15 }, clientId: '' };
+let editIdx = null;
+const DIAS_SEM = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const MESES_N = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function load() {
+  try { const r = localStorage.getItem('rh_v3'); if (r) D = JSON.parse(r); } catch(e) {}
+  if (!D.dias) D.dias = [];
+  if (!D.cobros) D.cobros = [];
+  if (!D.cfg) D.cfg = { precio: 10, extra: 15 };
+  if (!D.clientId) D.clientId = '';
+}
+
+function save() {
+  try { localStorage.setItem('rh_v3', JSON.stringify(D)); } catch(e) { alert('Error al guardar'); }
+  updHeader();
+}
+
+function eur(n) {
+  return (Math.round(n * 100) / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+}
+
+function hText(h) {
+  const hh = Math.floor(h), mm = Math.round((h - hh) * 60);
+  return mm > 0 ? hh + 'h ' + mm + 'm' : hh + 'h';
+}
+
+function calcTotal(h, he, p, pe) {
+  return (h * p) + (he * (pe > 0 ? pe : p));
+}
+
+function updHeader() {
+  const hoy = new Date().toISOString().slice(0, 7);
+  const dm = D.dias.filter(d => d.fecha.startsWith(hoy)).length;
+  const tot = D.dias.reduce((s, d) => s + d.total, 0);
+  document.getElementById('hdr-sub').textContent = dm + ' días este mes · ' + eur(tot) + ' total';
+}
+
+function calcPrev() {
+  const h = parseFloat(document.getElementById('inp-horas').value) || 0;
+  const he = parseFloat(document.getElementById('inp-extra').value) || 0;
+  const p = parseFloat(document.getElementById('inp-precio').value) || D.cfg.precio;
+  const pe = parseFloat(document.getElementById('inp-precio-extra').value) || D.cfg.extra;
+  const total = calcTotal(h, he, p, pe);
+  document.getElementById('prev-total').textContent = eur(total);
+  document.getElementById('prev-htotal').textContent = hText(h + he);
+  if (he > 0) {
+    document.getElementById('prev-det').textContent = hText(h) + ' × ' + p + '€ + ' + hText(he) + ' extra × ' + pe + '€';
+    document.getElementById('prev-hdet').textContent = hText(h) + ' norm + ' + hText(he) + ' extra';
+  } else {
+    document.getElementById('prev-det').textContent = h > 0 ? h + 'h × ' + p + ' €/h' : 'Introduce las horas';
+    document.getElementById('prev-hdet').textContent = '';
+  }
+}
+
+function init() {
+  load();
+  document.getElementById('inp-fecha').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('inp-precio').value = D.cfg.precio;
+  document.getElementById('inp-precio-extra').value = D.cfg.extra;
+  document.getElementById('cfg-precio').value = D.cfg.precio;
+  document.getElementById('cfg-extra').value = D.cfg.extra;
+  if (D.clientId) document.getElementById('inp-client-id').value = D.clientId;
+  poblarFiltros();
+  renderListado();
+  renderResumen();
+  renderCobros();
+  updHeader();
+
+  // Capturar token de Drive tras redirección OAuth
+  if (location.hash.includes('access_token')) {
+    const token = new URLSearchParams(location.hash.slice(1)).get('access_token');
+    if (token) { subirArchivoDrive(token); history.replaceState(null, '', location.pathname); }
+  }
+}
+
+function guardarConfig() {
+  const p = parseFloat(document.getElementById('cfg-precio').value);
+  const pe = parseFloat(document.getElementById('cfg-extra').value);
+  if (isNaN(p)) { alert('Precio inválido'); return; }
+  D.cfg.precio = p; D.cfg.extra = pe || 0;
+  document.getElementById('inp-precio').value = p;
+  document.getElementById('inp-precio-extra').value = pe || '';
+  save(); toast('✅ Configuración guardada');
+}
+
+function guardarClientId() {
+  D.clientId = document.getElementById('inp-client-id').value.trim();
+  save();
+}
+
+function guardarDia() {
+  const fecha = document.getElementById('inp-fecha').value;
+  const h = parseFloat(document.getElementById('inp-horas').value) || 0;
+  const he = parseFloat(document.getElementById('inp-extra').value) || 0;
+  const p = parseFloat(document.getElementById('inp-precio').value) || D.cfg.precio;
+  const pe = parseFloat(document.getElementById('inp-precio-extra').value) || D.cfg.extra;
+  const notas = document.getElementById('inp-notas').value;
+
+  if (!fecha) { alert('Introduce la fecha'); return; }
+  if (h <= 0 && he <= 0) { alert('Introduce al menos las horas trabajadas'); return; }
+
+  const total = calcTotal(h, he, p, pe);
+  const dia = { fecha, h, he, p, pe, notas, total, cobrado: false };
+
+  const ex = D.dias.findIndex(d => d.fecha === fecha);
+  if (ex >= 0) {
+    if (!confirm('Ya existe un registro para esta fecha. ¿Sobreescribir?')) return;
+    D.dias[ex] = dia;
+  } else {
+    D.dias.push(dia);
+    D.dias.sort((a, b) => a.fecha > b.fecha ? -1 : 1);
+  }
+  save(); poblarFiltros(); renderListado(); renderResumen(); renderCobros();
+  document.getElementById('inp-horas').value = '';
+  document.getElementById('inp-extra').value = '';
+  document.getElementById('inp-notas').value = '';
+  calcPrev();
+  toast('✅ ' + eur(total) + ' · ' + hText(h + he) + ' guardado');
+}
+
+function estadoDia(d) {
+  if (d.cobrado) return 'cobrado';
+  return D.cobros.some(c => {
+    if (c.tipo === 'hasta') return d.fecha <= c.f1;
+    if (c.tipo === 'dia') return d.fecha === c.f1;
+    if (c.tipo === 'rango') return d.fecha >= c.f1 && d.fecha <= (c.f2 || c.f1);
+    return false;
+  }) ? 'cobrado' : 'pendiente';
+}
+
+function poblarFiltros() {
+  const meses = [...new Set(D.dias.map(d => d.fecha.slice(0, 7)))].sort().reverse();
+  const sel = document.getElementById('fil-mes');
+  const act = sel.value;
+  sel.innerHTML = '<option value="">Todos los meses</option>';
+  meses.forEach(m => {
+    const parts = m.split('-');
+    const o = document.createElement('option');
+    o.value = m;
+    o.textContent = MESES_N[parseInt(parts[1])] + ' ' + parts[0];
+    if (m === act) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+function renderListado() {
+  const fm = document.getElementById('fil-mes').value;
+  const fe = document.getElementById('fil-est').value;
+  let dias = [...D.dias];
+  if (fm) dias = dias.filter(d => d.fecha.startsWith(fm));
+  if (fe) dias = dias.filter(d => estadoDia(d) === fe);
+  const cont = document.getElementById('lst-cont');
+  if (!dias.length) { cont.innerHTML = '<div class="empty">📋 No hay registros con estos filtros</div>'; return; }
+  cont.innerHTML = dias.map(d => {
+    const ri = D.dias.indexOf(d);
+    const est = estadoDia(d);
+    const f = new Date(d.fecha + 'T12:00:00');
+    const fd = DIAS_SEM[f.getDay()] + ' ' + d.fecha.split('-').reverse().join('/');
+    return '<div class="day-item ' + (est === 'cobrado' ? 'paid' : '') + '">' +
+      '<div class="dh"><div>' +
+      '<div class="ddate">' + fd + '</div>' +
+      '<div class="ddetail">' + hText(d.h) + ' normales' + (d.he > 0 ? ' + ' + hText(d.he) + ' extra' : '') + ' · ' + d.p + '€/h' + (d.he > 0 ? ' | ' + d.pe + '€/h extra' : '') + '</div>' +
+      (d.notas ? '<div style="font-size:11px;color:var(--mu);margin-top:2px">📝 ' + d.notas + '</div>' : '') +
+      '</div><div style="text-align:right">' +
+      '<div class="dtotal">' + eur(d.total) + '</div>' +
+      '<span class="badge ' + (est === 'cobrado' ? 'b-ok' : 'b-pend') + '">' + (est === 'cobrado' ? '✓ Cobrado' : '⏳ Pendiente') + '</span>' +
+      '</div></div>' +
+      (d.he > 0 ? '<div style="font-size:11px;color:var(--mu);margin-bottom:6px">📊 ' + eur(d.h * d.p) + ' normales + ' + eur(d.he * d.pe) + ' extra</div>' : '') +
+      '<div class="dact">' +
+      '<button class="btn btn-g btn-sm" onclick="abrirEdit(' + ri + ')">✏️ Editar</button>' +
+      (est !== 'cobrado'
+        ? '<button class="btn btn-ok btn-sm" onclick="marcarCob(' + ri + ',true)">✓ Cobrado</button>'
+        : '<button class="btn btn-g btn-sm" onclick="marcarCob(' + ri + ',false)">↩ Pendiente</button>') +
+      '<button class="btn btn-dan btn-sm" onclick="borrarDia(' + ri + ')">🗑</button>' +
+      '</div></div>';
+  }).join('');
+}
+
+function renderResumen() {
+  const per = document.getElementById('res-periodo').value;
+  const hoy = new Date();
+  let dias = [...D.dias];
+  if (per === 'semana') {
+    const lun = new Date(hoy);
+    lun.setDate(hoy.getDate() - (hoy.getDay() === 0 ? 6 : hoy.getDay() - 1));
+    dias = dias.filter(d => d.fecha >= lun.toISOString().slice(0, 10));
+  } else if (per === 'mes') {
+    dias = dias.filter(d => d.fecha.startsWith(hoy.toISOString().slice(0, 7)));
+  } else if (per === 'año') {
+    dias = dias.filter(d => d.fecha.startsWith(hoy.getFullYear().toString()));
+  }
+  const tot = dias.reduce((s, d) => s + d.total, 0);
+  const hTot = dias.reduce((s, d) => s + d.h + d.he, 0);
+  const cob = dias.filter(d => estadoDia(d) === 'cobrado').reduce((s, d) => s + d.total, 0);
+  const pend = tot - cob;
+  const ptexto = { semana: 'Esta semana', mes: 'Este mes', año: 'Este año', todo: 'Total acumulado' };
+
+  let desglose = '';
+  if (per === 'todo') {
+    const pm = {};
+    D.dias.forEach(d => {
+      const m = d.fecha.slice(0, 7);
+      if (!pm[m]) pm[m] = { t: 0, n: 0 };
+      pm[m].t += d.total; pm[m].n++;
+    });
+    const ms = Object.keys(pm).sort().reverse();
+    if (ms.length) {
+      desglose = '<div class="card"><div class="card-title">Por mes</div>' +
+        ms.map(m => {
+          const parts = m.split('-');
+          return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:.5px solid var(--bd)">' +
+            '<div><div style="font-weight:600;font-size:13px">' + MESES_N[parseInt(parts[1])] + ' ' + parts[0] + '</div>' +
+            '<div style="font-size:11px;color:var(--mu)">' + pm[m].n + ' días</div></div>' +
+            '<div style="font-weight:700;color:var(--p)">' + eur(pm[m].t) + '</div></div>';
+        }).join('') + '</div>';
+    }
+  }
+
+  document.getElementById('res-cont').innerHTML =
+    '<div class="card"><div class="big-num">' +
+    '<div class="label">' + ptexto[per] + '</div>' +
+    '<div class="monto">' + eur(tot) + '</div>' +
+    '<div class="label">' + dias.length + ' días · ' + hText(hTot) + '</div>' +
+    '</div></div>' +
+    '<div class="stat-grid">' +
+    '<div class="stat"><div class="val" style="color:var(--ok)">' + eur(cob) + '</div><div class="lbl">Cobrado</div></div>' +
+    '<div class="stat"><div class="val" style="color:var(--acc)">' + eur(pend) + '</div><div class="lbl">Pendiente</div></div>' +
+    '<div class="stat"><div class="val">' + dias.length + '</div><div class="lbl">Días</div></div>' +
+    '<div class="stat"><div class="val">' + hText(hTot) + '</div><div class="lbl">Horas totales</div></div>' +
+    '</div>' + desglose +
+    '<div class="card"><div class="card-title">Copia de seguridad</div>' +
+    '<div style="font-size:12px;color:var(--mu);margin-bottom:10px">Guarda una copia para no perder datos al cambiar de dispositivo.</div>' +
+    '<button class="btn btn-g" onclick="document.getElementById(\'modal-backup\').classList.add(\'open\')">☁️ Copia de seguridad / Drive</button>' +
+    '</div>';
+}
+
+function renderCobros() {
+  const totG = D.dias.reduce((s, d) => s + d.total, 0);
+  const totC = D.cobros.reduce((s, c) => s + (c.imp || 0), 0);
+  const pend = Math.max(0, totG - totC);
+  document.getElementById('bal-cont').innerHTML =
+    '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:.5px solid var(--bd)">' +
+    '<span style="font-size:13px;color:var(--mu)">Total ganado</span><span style="font-weight:600">' + eur(totG) + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:.5px solid var(--bd)">' +
+    '<span style="font-size:13px;color:var(--mu)">Total cobrado</span><span style="font-weight:600;color:var(--ok)">' + eur(totC) + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;padding:8px 0">' +
+    '<span style="font-weight:600">Pendiente</span>' +
+    '<span style="font-weight:700;font-size:16px;color:' + (pend > 0 ? 'var(--acc)' : 'var(--ok)') + '">' + eur(pend) + '</span></div>';
+
+  const hist = document.getElementById('cob-hist');
+  if (!D.cobros.length) { hist.innerHTML = '<div style="color:var(--mu);font-size:13px;text-align:center;padding:8px">Sin cobros aún</div>'; return; }
+  hist.innerHTML = D.cobros.slice().reverse().map((c, ri) => {
+    const real = D.cobros.length - 1 - ri;
+    const tipo = c.tipo === 'hasta' ? 'Hasta ' + c.f1 : c.tipo === 'dia' ? 'Día ' + c.f1 : c.f1 + ' → ' + c.f2;
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:.5px solid var(--bd)">' +
+      '<div><div style="font-size:13px;font-weight:600">💰 ' + tipo + '</div>' +
+      '<div style="font-size:11px;color:var(--mu)">' + (c.notas || '') + '</div></div>' +
+      '<div style="display:flex;align-items:center;gap:8px">' +
+      (c.imp > 0 ? '<span style="font-weight:700;color:var(--p)">' + eur(c.imp) + '</span>' : '') +
+      '<button class="btn btn-dan btn-sm" onclick="borrarCobro(' + real + ')">✕</button></div></div>';
+  }).join('');
+}
+
+function tipoCobro() {
+  const t = document.getElementById('cob-tipo').value;
+  document.getElementById('cob-lbl').textContent = t === 'hasta' ? 'Cobrado hasta' : t === 'dia' ? 'Día cobrado' : 'Desde fecha';
+  document.getElementById('cob-f2-wrap').style.display = t === 'rango' ? 'block' : 'none';
+}
+
+function registrarCobro() {
+  const tipo = document.getElementById('cob-tipo').value;
+  const f1 = document.getElementById('cob-f1').value;
+  const f2 = document.getElementById('cob-f2').value;
+  const imp = parseFloat(document.getElementById('cob-imp').value) || 0;
+  const notas = document.getElementById('cob-notas').value;
+  if (!f1) { alert('Selecciona una fecha'); return; }
+  if (tipo === 'rango' && !f2) { alert('Selecciona la fecha final'); return; }
+  D.cobros.push({ tipo, f1, f2: tipo === 'rango' ? f2 : '', imp, notas });
+  save(); renderListado(); renderCobros(); renderResumen();
+  document.getElementById('cob-f1').value = '';
+  document.getElementById('cob-f2').value = '';
+  document.getElementById('cob-imp').value = '';
+  document.getElementById('cob-notas').value = '';
+  toast('✅ Cobro registrado');
+}
+
+function marcarCob(idx, val) { D.dias[idx].cobrado = val; save(); renderListado(); renderCobros(); }
+
+function borrarDia(idx) {
+  if (!confirm('¿Eliminar el día ' + D.dias[idx].fecha + '?')) return;
+  D.dias.splice(idx, 1); save(); poblarFiltros(); renderListado(); renderResumen(); renderCobros();
+}
+
+function borrarCobro(idx) {
+  if (!confirm('¿Eliminar este cobro?')) return;
+  D.cobros.splice(idx, 1); save(); renderListado(); renderCobros();
+}
+
+function abrirEdit(idx) {
+  editIdx = idx;
+  const d = D.dias[idx];
+  document.getElementById('ed-h').value = d.h;
+  document.getElementById('ed-he').value = d.he;
+  document.getElementById('ed-p').value = d.p;
+  document.getElementById('ed-pe').value = d.pe;
+  document.getElementById('ed-n').value = d.notas || '';
+  document.getElementById('modal-edit').classList.add('open');
+}
+
+function guardarEdit() {
+  if (editIdx === null) return;
+  const d = D.dias[editIdx];
+  d.h = parseFloat(document.getElementById('ed-h').value) || d.h;
+  d.he = parseFloat(document.getElementById('ed-he').value) || 0;
+  d.p = parseFloat(document.getElementById('ed-p').value) || d.p;
+  d.pe = parseFloat(document.getElementById('ed-pe').value) || d.pe;
+  d.notas = document.getElementById('ed-n').value;
+  d.total = calcTotal(d.h, d.he, d.p, d.pe);
+  save(); renderListado(); renderResumen(); renderCobros();
+  cerrarModal('modal-edit');
+  toast('✅ Día actualizado');
+}
+
+function cerrarModal(id) { document.getElementById(id).classList.remove('open'); editIdx = null; }
+
+function exportCSV() {
+  const cab = ['Fecha','Día','H.Normales','H.Extra','H.Total','€/h normal','€/h extra','Total €','Estado','Notas'];
+  const filas = D.dias.map(d => {
+    const f = new Date(d.fecha + 'T12:00:00');
+    return [d.fecha, DIAS_SEM[f.getDay()], d.h.toFixed(2), d.he.toFixed(2), (d.h+d.he).toFixed(2),
+      d.p, d.pe, d.total.toFixed(2), estadoDia(d), d.notas || ''].join(',');
+  });
+  descargar('registro_horas.csv', 'text/csv', [cab.join(','), ...filas].join('\n'));
+}
+
+function exportJSON() {
+  descargar('backup_horas_' + new Date().toISOString().slice(0,10) + '.json', 'application/json', JSON.stringify(D, null, 2));
+}
+
+function importJSON() {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.json';
+  inp.onchange = e => {
+    const r = new FileReader();
+    r.onload = ev => {
+      try {
+        const imp = JSON.parse(ev.target.result);
+        if (!imp.dias) { alert('Archivo inválido'); return; }
+        if (!confirm('¿Restaurar backup con ' + imp.dias.length + ' días? Se perderán los datos actuales.')) return;
+        D = imp; save(); poblarFiltros(); renderListado(); renderResumen(); renderCobros();
+        toast('✅ Backup restaurado');
+      } catch(err) { alert('Error al leer el archivo'); }
+    };
+    r.readAsText(e.target.files[0]);
+  };
+  inp.click();
+}
+
+function descargar(nombre, tipo, contenido) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([contenido], { type: tipo }));
+  a.download = nombre; a.click();
+}
+
+function subirDrive() {
+  const clientId = D.clientId || document.getElementById('inp-client-id').value.trim();
+  if (!clientId) {
+    alert('Primero pega tu Google Client ID en el campo de arriba.\n\nSi no lo tienes aún, ve a console.cloud.google.com y créalo (es gratis).');
+    return;
+  }
+  const SCOPE = 'https://www.googleapis.com/auth/drive.file';
+  const redirectUri = location.href.split('?')[0].split('#')[0];
+  const authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?client_id=' + encodeURIComponent(clientId) +
+    '&redirect_uri=' + encodeURIComponent(redirectUri) +
+    '&response_type=token&scope=' + encodeURIComponent(SCOPE);
+  location.href = authUrl;
+}
+
+async function subirArchivoDrive(token) {
+  const st = document.getElementById('drive-status');
+  const er = document.getElementById('drive-err');
+  const nombre = 'registro_horas_backup_' + new Date().toISOString().slice(0,10) + '.json';
+  const contenido = JSON.stringify(D, null, 2);
+  const meta = JSON.stringify({ name: nombre, mimeType: 'application/json' });
+  const form = new FormData();
+  form.append('metadata', new Blob([meta], { type: 'application/json' }));
+  form.append('file', new Blob([contenido], { type: 'application/json' }));
+  try {
+    const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+      method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: form
+    });
+    if (r.ok) {
+      document.getElementById('modal-backup').classList.add('open');
+      st.style.display = 'block';
+      toast('✅ Subido a Google Drive');
+    } else { er.style.display = 'block'; }
+  } catch(e) { er.style.display = 'block'; }
+}
+
+function showTab(tab) {
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  const tabs = ['reg','lst','res','cob'];
+  document.querySelectorAll('.nav button')[tabs.indexOf(tab)].classList.add('active');
+  if (tab === 'lst') renderListado();
+  if (tab === 'res') renderResumen();
+  if (tab === 'cob') renderCobros();
+}
+
+init();
+</script>
+</body>
+</html>
